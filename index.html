@@ -30,7 +30,7 @@ h2{margin:42px 0 17px}
 .thumb{width:54px;height:54px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#7548ff,#e55eaa);font-size:23px}
 .info{flex:1}.info b{display:block;margin-bottom:5px}.info small{color:var(--muted)}
 .tag{font-size:12px;padding:5px 9px;border-radius:12px;background:#292336;color:#c9b3e8}
-.empty{text-align:center;padding:28px;border:1px dashed #3a3546;border-radius:16px;color:var(--muted)}
+.empty{text-align:center;padding:28px;border:1px dashed #3a3546;border-radius:16px;color:var(--muted)}.catalog-song{opacity:.92}.catalog-song .tag{background:#33294a;color:#d9c5f5}
 .player{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px 6%;background:rgba(13,12,19,.95);backdrop-filter:blur(20px);border-top:1px solid var(--line)}
 .player-row{display:flex;align-items:center;gap:16px}.now{width:24%;min-width:150px}.now b{display:block}.now small{color:var(--muted)}
 .controls{display:flex;gap:9px}.control{width:40px;height:40px;border:0;border-radius:50%;background:#282335;color:white;cursor:pointer}.play{width:47px;height:47px;background:var(--accent);color:#160d21}
@@ -50,7 +50,7 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
 <main class="container">
 <section class="hero">
   <h1>Nhạc bạn thích.<br><span>Một nơi là đủ.</span></h1>
-  <p>Tổng hợp khu vực dành cho fan của Sơn Tùng M-TP, Lê Bảo Bình, Phát Huy T4, Nguyễn Vĩ và H2K. Bạn có thể thêm file nhạc của mình để nghe trực tiếp trên trình duyệt.</p>
+  <p>Tổng hợp nhạc của Sơn Tùng M-TP, Lê Bảo Bình, Phát Huy T4, Nguyễn Vĩ và H2K. Thư viện bài hát đã được thêm sẵn; MP3/WAV trên máy có thể phát trực tiếp.</p>
   <button class="btn primary" onclick="document.getElementById('files').click()">＋ Thêm nhạc của bạn</button>
   <button class="btn dark" onclick="playFirst()">▶ Phát nhạc</button>
   <input id="files" type="file" accept="audio/*" multiple hidden>
@@ -85,6 +85,14 @@ input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
 
 <script>
 const artistNames=["Sơn Tùng M-TP","Lê Bảo Bình","Phát Huy T4","Nguyễn Vĩ","H2K"];
+
+const catalog = [
+ ["Sơn Tùng M-TP",["Lạc Trôi","Nơi Này Có Anh","Chạy Ngay Đi","Hãy Trao Cho Anh","Có Chắc Yêu Là Đây","Muộn Rồi Mà Sao Còn","Chúng Ta Của Hiện Tại","Chúng Ta Của Tương Lai","Đừng Làm Trái Tim Anh Đau","Come My Way"]],
+ ["Lê Bảo Bình",["Thương Em Đến Già","Níu Duyên","Sai Cách Yêu","Bước Qua Đời Nhau","Bỏ Lỡ Một Người","Chẳng Bao Giờ Quên","Chẳng Hợp Nhau Đâu","Một Thời Để Nhớ"]],
+ ["Phát Huy T4",["Câu Hứa Chưa Vẹn Tròn","Chẳng Thể Nghe Con Tim","Duyên Ta Chỉ Đây Thôi","Đoạn Tuyệt Nàng Đi","Đợi Tàu Ở Sân Bay","Em Là Kẻ Đáng Thương","Ngày Bình Thường Quên Người Mình Thương","Mang Hào Quang Về Miền Trung Mình"]],
+ ["Nguyễn Vĩ",["Không Môn Đăng Hộ Đối","Có Mình Và Ta","Thời Thế Thế Thời","Lý Do Là Gì","Ngày Em Cưới","Tham Phú Phụ Bần","Về Đi Em","Kết Thúc Bất Ngờ"]],
+ ["H2K",["Đừng Hỏi Em Ổn Không","Thương Em Gái Miền Tây","Người Tình Mùa Đông","Hào Hoa","Hỏi Vợ Ngoại Thành","Tháng Năm Không Quên","Xa Mãi","Sớm Mai"]]
+];
 const artists=document.getElementById("artists");
 const playlist=document.getElementById("playlist");
 const audio=document.getElementById("audio");
@@ -114,21 +122,50 @@ function setArtist(a,el){
  render();
 }
 function render(){
- const q=search.value.toLowerCase();
- const list=songs.map((s,i)=>({...s,i})).filter(s=>
-   s.name.toLowerCase().includes(q)&&(!filterArtist||s.artist===filterArtist)
- );
- if(!list.length){
-   playlist.innerHTML=`<div class="empty">${songs.length?"Không tìm thấy bài phù hợp.":"Chưa có file nhạc. Hãy thêm MP3/WAV từ thiết bị."}</div>`;
-   return;
- }
- playlist.innerHTML=list.map(s=>`
- <div class="song ${s.i===current?"active":""}" onclick="load(${s.i});toggle(true)">
-  <div class="thumb">♫</div>
-  <div class="info"><b>${esc(s.name)}</b><small>${esc(s.artist)}</small></div>
-  <span class="tag">${s.i===current?"ĐANG PHÁT":"PLAY"}</span>
- </div>`).join("");
+  const q=search.value.toLowerCase();
+  const localList=songs.map((s,i)=>({...s,i})).filter(s=>
+    s.name.toLowerCase().includes(q)&&(!filterArtist||s.artist===filterArtist)
+  );
+
+  const catalogList=[];
+  catalog.forEach(([artist,names])=>{
+    if(filterArtist&&filterArtist!==artist)return;
+    names.forEach(name=>{
+      if(name.toLowerCase().includes(q)) catalogList.push({name,artist});
+    });
+  });
+
+  if(!localList.length&&!catalogList.length){
+    playlist.innerHTML=`<div class="empty">Không tìm thấy bài phù hợp.</div>`;
+    return;
+  }
+
+  playlist.innerHTML=[
+    ...localList.map(s=>`
+      <div class="song ${s.i===current?"active":""}" onclick="load(${s.i});toggle(true)">
+       <div class="thumb">♫</div>
+       <div class="info"><b>${esc(s.name)}</b><small>${esc(s.artist)} • File của bạn</small></div>
+       <span class="tag">${s.i===current?"ĐANG PHÁT":"PLAY"}</span>
+      </div>`),
+    ...catalogList.map(s=>`
+      <div class="song catalog-song" onclick="findLocalSong('${escAttr(s.artist)}','${escAttr(s.name)}')">
+       <div class="thumb">♪</div>
+       <div class="info"><b>${esc(s.name)}</b><small>${esc(s.artist)} • Thư viện</small></div>
+       <span class="tag">THÊM MP3</span>
+      </div>`)
+  ].join("");
 }
+
+function escAttr(t){
+  return t.replace(/&/g,"&amp;").replace(/'/g,"&#039;").replace(/"/g,"&quot;");
+}
+
+function findLocalSong(artist,name){
+  const i=songs.findIndex(s=>s.artist===artist&&s.name.toLowerCase()===name.toLowerCase());
+  if(i>=0){load(i);toggle(true);return;}
+  alert(`Hãy thêm file MP3/WAV của "${artist} - ${name}" vào web để phát bài này.`);
+}
+
 function esc(t){return t.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
 function load(i){
  if(!songs[i])return;
