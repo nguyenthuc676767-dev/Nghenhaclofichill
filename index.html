@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vibe Music | Sơn Tùng M-TP • Lê Bảo Bình • Phát Huy T4 • Nguyễn Vĩ • H2K</title>
+<style>
+:root{--bg:#08080d;--card:#12121b;--line:#282735;--text:#fff;--muted:#a8a5b3;--accent:#b77cff}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Inter,Arial,sans-serif;background:radial-gradient(circle at 80% 0%,#26183d 0,#08080d 38%);color:var(--text);min-height:100vh;padding-bottom:115px}
+header{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:25px;padding:16px 6%;background:rgba(8,8,13,.86);backdrop-filter:blur(18px);border-bottom:1px solid var(--line)}
+.logo{font-size:24px;font-weight:900;white-space:nowrap}.logo span{color:var(--accent)}
+.search{margin-left:auto;width:min(360px,45vw);padding:12px 17px;border:1px solid var(--line);border-radius:25px;background:#12121a;color:white;outline:none}
+.container{width:88%;max-width:1150px;margin:35px auto}
+.hero{padding:42px;border:1px solid var(--line);border-radius:28px;background:linear-gradient(120deg,rgba(183,124,255,.18),rgba(255,255,255,.03));}
+.hero h1{font-size:clamp(38px,6vw,72px);line-height:.98;margin-bottom:16px}
+.hero h1 span{color:var(--accent)}
+.hero p{max-width:680px;color:var(--muted);line-height:1.7}
+.btn{margin-top:22px;border:0;border-radius:25px;padding:13px 21px;font-weight:800;cursor:pointer}
+.primary{background:var(--accent);color:#160d21}.dark{background:#292635;color:white;margin-left:8px}
+h2{margin:42px 0 17px}
+.artists{display:grid;grid-template-columns:repeat(5,1fr);gap:13px}
+.artist{padding:18px 12px;text-align:center;background:var(--card);border:1px solid var(--line);border-radius:18px;cursor:pointer;transition:.2s}
+.artist:hover,.artist.active{transform:translateY(-3px);border-color:#7650a7;background:#1a1724}
+.avatar{width:78px;height:78px;margin:0 auto 12px;border-radius:50%;display:grid;place-items:center;font-size:25px;font-weight:900;background:linear-gradient(135deg,#8b5cf6,#f472b6)}
+.artist p{font-weight:800}.artist small{color:var(--muted)}
+.playlist{display:grid;gap:10px}
+.song{display:flex;align-items:center;gap:15px;padding:13px;background:var(--card);border:1px solid var(--line);border-radius:15px;cursor:pointer}
+.song:hover,.song.active{background:#1c1826;border-color:#6d4b94}
+.thumb{width:54px;height:54px;border-radius:11px;display:grid;place-items:center;background:linear-gradient(135deg,#7548ff,#e55eaa);font-size:23px}
+.info{flex:1}.info b{display:block;margin-bottom:5px}.info small{color:var(--muted)}
+.tag{font-size:12px;padding:5px 9px;border-radius:12px;background:#292336;color:#c9b3e8}
+.empty{text-align:center;padding:28px;border:1px dashed #3a3546;border-radius:16px;color:var(--muted)}
+.player{position:fixed;left:0;right:0;bottom:0;z-index:20;padding:12px 6%;background:rgba(13,12,19,.95);backdrop-filter:blur(20px);border-top:1px solid var(--line)}
+.player-row{display:flex;align-items:center;gap:16px}.now{width:24%;min-width:150px}.now b{display:block}.now small{color:var(--muted)}
+.controls{display:flex;gap:9px}.control{width:40px;height:40px;border:0;border-radius:50%;background:#282335;color:white;cursor:pointer}.play{width:47px;height:47px;background:var(--accent);color:#160d21}
+.progress{flex:1;display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent);cursor:pointer}
+@media(max-width:800px){.artists{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){header{padding:13px 5%}.search{width:42%}.container{width:92%}.hero{padding:27px}.player{padding:10px 4%}.player-row{flex-wrap:wrap}.now{width:100%}.progress{order:3;width:100%}.dark{margin-left:4px}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🎧 Vibe<span>Music</span></div>
+  <input id="search" class="search" placeholder="Tìm bài hát hoặc ca sĩ...">
+</header>
+
+<main class="container">
+<section class="hero">
+  <h1>Nhạc bạn thích.<br><span>Một nơi là đủ.</span></h1>
+  <p>Tổng hợp khu vực dành cho fan của Sơn Tùng M-TP, Lê Bảo Bình, Phát Huy T4, Nguyễn Vĩ và H2K. Bạn có thể thêm file nhạc của mình để nghe trực tiếp trên trình duyệt.</p>
+  <button class="btn primary" onclick="document.getElementById('files').click()">＋ Thêm nhạc của bạn</button>
+  <button class="btn dark" onclick="playFirst()">▶ Phát nhạc</button>
+  <input id="files" type="file" accept="audio/*" multiple hidden>
+</section>
+
+<h2>🎤 Nghệ sĩ</h2>
+<section class="artists" id="artists"></section>
+
+<h2>🎵 Playlist</h2>
+<section class="playlist" id="playlist">
+  <div class="empty">Chưa có file nhạc. Hãy thêm MP3/WAV từ thiết bị để bắt đầu.</div>
+</section>
+</main>
+
+<div class="player">
+  <div class="player-row">
+    <div class="now"><b id="title">Chưa phát nhạc</b><small id="artist">VibeMusic</small></div>
+    <div class="controls">
+      <button class="control" onclick="prev()">⏮</button>
+      <button id="play" class="control play" onclick="toggle()">▶</button>
+      <button class="control" onclick="next()">⏭</button>
+    </div>
+    <div class="progress">
+      <span id="cur">0:00</span>
+      <input id="bar" type="range" min="0" max="100" value="0">
+      <span id="dur">0:00</span>
+    </div>
+  </div>
+</div>
+
+<audio id="audio"></audio>
+
+<script>
+const artistNames=["Sơn Tùng M-TP","Lê Bảo Bình","Phát Huy T4","Nguyễn Vĩ","H2K"];
+const artists=document.getElementById("artists");
+const playlist=document.getElementById("playlist");
+const audio=document.getElementById("audio");
+const files=document.getElementById("files");
+const search=document.getElementById("search");
+const bar=document.getElementById("bar");
+let songs=[],current=-1,filterArtist="";
+
+artists.innerHTML=artistNames.map((a,i)=>`
+<div class="artist" onclick="setArtist('${a.replace(/'/g,"\\'")}',this)">
+ <div class="avatar">${["ST","LB","PH","NV","H2"][i]}</div>
+ <p>${a}</p><small>Nhấn để lọc</small>
+</div>`).join("");
+
+files.addEventListener("change",e=>{
+ [...e.target.files].forEach(f=>{
+   songs.push({name:f.name.replace(/\.[^/.]+$/,""),artist:"Nhạc của bạn",url:URL.createObjectURL(f)});
+ });
+ render();
+ if(current<0&&songs.length) load(0);
+});
+
+function setArtist(a,el){
+ filterArtist=filterArtist===a?"":a;
+ document.querySelectorAll(".artist").forEach(x=>x.classList.remove("active"));
+ if(filterArtist)el.classList.add("active");
+ render();
+}
+function render(){
+ const q=search.value.toLowerCase();
+ const list=songs.map((s,i)=>({...s,i})).filter(s=>
+   s.name.toLowerCase().includes(q)&&(!filterArtist||s.artist===filterArtist)
+ );
+ if(!list.length){
+   playlist.innerHTML=`<div class="empty">${songs.length?"Không tìm thấy bài phù hợp.":"Chưa có file nhạc. Hãy thêm MP3/WAV từ thiết bị."}</div>`;
+   return;
+ }
+ playlist.innerHTML=list.map(s=>`
+ <div class="song ${s.i===current?"active":""}" onclick="load(${s.i});toggle(true)">
+  <div class="thumb">♫</div>
+  <div class="info"><b>${esc(s.name)}</b><small>${esc(s.artist)}</small></div>
+  <span class="tag">${s.i===current?"ĐANG PHÁT":"PLAY"}</span>
+ </div>`).join("");
+}
+function esc(t){return t.replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]))}
+function load(i){
+ if(!songs[i])return;
+ current=i;audio.src=songs[i].url;audio.load();
+ document.getElementById("title").textContent=songs[i].name;
+ document.getElementById("artist").textContent=songs[i].artist;
+ render();
+}
+function toggle(force){
+ if(current<0){if(songs.length)load(0);else return}
+ if(force===true||audio.paused){audio.play();document.getElementById("play").textContent="❚❚"}
+ else{audio.pause();document.getElementById("play").textContent="▶"}
+}
+function next(){if(!songs.length)return;load((current+1)%songs.length);audio.play()}
+function prev(){if(!songs.length)return;load((current-1+songs.length)%songs.length);audio.play()}
+function playFirst(){if(songs.length){if(current<0)load(0);audio.play()}}
+audio.onplay=()=>document.getElementById("play").textContent="❚❚";
+audio.onpause=()=>document.getElementById("play").textContent="▶";
+audio.onended=next;
+audio.ontimeupdate=()=>{
+ bar.value=audio.duration?(audio.currentTime/audio.duration)*100:0;
+ document.getElementById("cur").textContent=time(audio.currentTime);
+ document.getElementById("dur").textContent=time(audio.duration||0);
+};
+bar.oninput=()=>{if(audio.duration)audio.currentTime=bar.value/100*audio.duration};
+search.oninput=render;
+function time(x){x=Math.floor(x||0);return Math.floor(x/60)+":"+String(x%60).padStart(2,"0")}
+</script>
+</body>
+</html>
